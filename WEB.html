@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dolci's Media Test</title>
+  <link rel="stylesheet" href="display.css">
+  <style>
+    /* Your CSS styles here */
+    .post {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DOLCI'S MEDIA TEST - Forum</h1>
+  </header>
+
+  <!-- Navigation buttons -->
+  <div id="nav-buttons">
+    <button class="nav-button" onclick="showHomePage()">Home Page</button>
+    <button class="nav-button" onclick="showPostsPage()">Posts</button>
+    <button class="nav-button" onclick="showCreditsPage()">Credits</button>
+    <button class="nav-button" onclick="showSignupPage()">Sign Up</button>
+    <button class="nav-button" id="logout-button" style="display: none;" onclick="logout()">Log Out</button>
+  </div>
+
+  <!-- Content container -->
+  <div class="content-container">
+    <!-- Sign-up Section -->
+    <div id="signup-section">
+      <h2>Sign Up</h2>
+      <input type="text" id="signup-username" class="signup-input" placeholder="Username">
+      <input type="password" id="signup-password" class="signup-input" placeholder="Password">
+      <button type="button" id="signup-button" onclick="signup()">Sign Up</button>
+    </div>
+
+    <!-- Home Page -->
+    <div id="home-page">
+      <h2>Hello User</h2>
+      <!-- Add content for the Home Page here -->
+    </div>
+
+    <!-- Posts Section -->
+    <div id="posts-page" style="display: none;">
+      <h2>Posts</h2>
+      <div id="new-post">
+        <textarea id="post-content" placeholder="Write your post here..." onkeypress="handleKeyPress(event)"></textarea>
+        <button type="button" id="post-button" onclick="postMessage()">Post</button>
+        <label for="pin-post">Pin Post:</label>
+        <input type="checkbox" id="pin-post">
+      </div>
+      <div id="post-container"></div>
+    </div>
+
+    <!-- Credits Page -->
+    <div id="credits-page" style="display: none;">
+      <h2>Credits</h2>
+      <p>This website was created by me aka Dolci.</p>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="settings-page" style="display: none;">
+      <h2>Settings</h2>
+      <!-- Add content for the Settings Page here -->
+    </div>
+
+    <!-- Include Logout and System Content -->
+    <div id="logout-content" style="display: none;"></div>
+    <div id="system-content" style="display: none;"></div>
+  </div>
+
+  <!-- JavaScript code -->
+  <script>
+    // Sample user data with roles (can be replaced with actual user data retrieved from a database)
+    const users = [
+      { username: 'Dolci', password: 'password', role: 'DOLCI-OPERATOR' },
+      { username: 'User1', password: 'password', role: 'USER' },
+      { username: '88jr', password: '88LEVNET', role: 'OPERATOR' },
+    ];
+
+    // Current user object to store the logged-in user data
+    let currentUser = null;
+
+    // Sample post data (can be replaced with actual data from a database)
+    const posts = [];
+
+    // Function to check if a user is an admin
+    function isAdmin(userRole) {
+      return userRole === 'DOLCI-OPERATOR' || userRole === 'OPERATOR';
+    }
+
+    // Function to handle posting a message
+    function postMessage() {
+      // Check if a user is logged in
+      var loggedInUser = localStorage.getItem("loggedInUser");
+      if (!loggedInUser) {
+        alert("You need to sign up or log in to post.");
+        return;
+      }
+
+      // Get the content of the post text area
+      var postContent = document.getElementById("post-content").value;
+
+      // Check if the post content is empty
+      if (postContent === "") {
+        // The post content is empty, so prevent the message from being posted
+        return;
+      }
+
+      // Create a new post object
+      const newPost = {
+        author: loggedInUser,
+        content: postContent,
+        pinned: document.getElementById("pin-post").checked,
+        timestamp: new Date().toLocaleString(),
+      };
+
+      // Add the new post to the posts array
+      posts.push(newPost);
+
+      // Clear the post text area
+      document.getElementById("post-content").value = "";
+
+      // Refresh the posts
+      displayPosts();
+    }
+
+    // Function to display posts in the UI
+    function displayPosts() {
+      const postContainer = document.getElementById("post-container");
+      postContainer.innerHTML = ""; // Clear the existing posts
+
+      // Iterate through the posts and create HTML elements to display them
+      for (const post of posts) {
+        const postElement = document.createElement("div");
+        postElement.classList.add("post");
+
+        const postAuthor = document.createElement("div");
+        postAuthor.classList.add("post-author");
+        postAuthor.textContent = "Posted by: " + post.author;
+        postElement.appendChild(postAuthor);
+
+        const postContentElement = document.createElement("div");
+        postContentElement.classList.add("post-content");
+        postContentElement.textContent = post.content;
+        postElement.appendChild(postContentElement);
+
+        const postTimestamp = document.createElement("div");
+        postTimestamp.classList.add("post-timestamp");
+        postTimestamp.textContent = "Posted at: " + post.timestamp;
+        postElement.appendChild(postTimestamp);
+
+        postContainer.appendChild(postElement);
+      }
+    }
+
+    // Function to handle Enter key press in the post text area
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        // Prevent the default Enter key behavior (line break)
+        event.preventDefault();
+        // Call the postMessage function to submit the post
+        postMessage();
+      }
+    }
+
+    // Function to handle user sign-up
+    function signup() {
+      // Check if a user is logged in.
+      var loggedInUser = localStorage.getItem("loggedInUser");
+      if (loggedInUser) {
+        // User is logged in, so display an alert message.
+        alert("You need to log out before you can sign up again.");
+        return;
+      }
+
+      var username = document.getElementById("signup-username").value;
+      var password = document.getElementById("signup-password").value;
+
+      // Store the logged-in user in localStorage
+      localStorage.setItem("loggedInUser", username);
+
+      // Find the user in the sample data
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        currentUser = user;
+      } else {
+        currentUser = null;
+      }
+
+      // Perform your sign-up logic here, for example, sending the data to a server.
+      // For this example, we'll just show an alert.
+      alert("Sign-up successful! Username: " + username + ", Password: " + password);
+
+      // Clear the input fields after sign-up
+      document.getElementById("signup-username").value = "";
+      document.getElementById("signup-password").value = "";
+
+      // Show the Home Page after signing up
+      showHomePage();
+    }
+
+    // Function to handle user log-out
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      currentUser = null;
+      showSignupPage(); // Redirect to the Sign Up page after log-out
+    }
+
+    // Function to show the Home Page
+    function showHomePage() {
+      document.getElementById("home-page").style.display = "block";
+      document.getElementById("posts-page").style.display = "none";
+      document.getElementById("credits-page").style.display = "none";
+      document.getElementById("signup-section").style.display = "none";
+      document.getElementById("settings-page").style.display = "none";
+      document.getElementById("logout-button").style.display = "inline-block"; // Show Log Out button
+    }
+
+    // Function to show the Posts Page
+    function showPostsPage() {
+      document.getElementById("home-page").style.display = "none";
+      document.getElementById("posts-page").style.display = "block";
+      document.getElementById("credits-page").style.display = "none";
+      document.getElementById("signup-section").style.display = "none";
+      document.getElementById("settings-page").style.display = "none";
+      document.getElementById("logout-button").style.display = "inline-block"; // Show Log Out button
+      displayPosts(); // Display the posts when switching to the Posts Page
+    }
+
+    // Function to show the Credits Page
+    function showCreditsPage() {
+      document.getElementById("home-page").style.display = "none";
+      document.getElementById("posts-page").style.display = "none";
+      document.getElementById("credits-page").style.display = "block";
+      document.getElementById("signup-section").style.display = "none";
+      document.getElementById("settings-page").style.display = "none";
+      document.getElementById("logout-button").style.display = "inline-block"; // Show Log Out button
+    }
+
+    // Function to show the Sign Up Page
+    function showSignupPage() {
+      document.getElementById("home-page").style.display = "none";
+      document.getElementById("posts-page").style.display = "none";
+      document.getElementById("credits-page").style.display = "none";
+      document.getElementById("signup-section").style.display = "block";
+      document.getElementById("settings-page").style.display = "none";
+      document.getElementById("logout-button").style.display = "none"; // Hide Log Out button
+    }
+
+    // Function to show the Settings Page
+    function showSettingsPage() {
+      document.getElementById("home-page").style.display = "none";
+      document.getElementById("posts-page").style.display = "none";
+      document.getElementById("credits-page").style.display = "none";
+      document.getElementById("signup-section").style.display = "none";
+      document.getElementById("settings-page").style.display = "block";
+      document.getElementById("logout-button").style.display = "inline-block"; // Show Log Out button
+    }
+
+    // Check if a user is already logged in and set the loggedInUser variable
+    var loggedInUser = localStorage.getItem("loggedInUser");
+    if (loggedInUser) {
+      // User is logged in, so update the UI accordingly
+      const user = users.find(u => u.username === loggedInUser);
+      if (user) {
+        currentUser = user;
+        if (isAdmin(currentUser.role)) {
+          showSettingsPage(); // If the user is an operator, show the Settings Page
+        } else {
+          showHomePage(); // Show the Home Page
+        }
+      }
+    }
+  </script>
+</body>
+</html>
